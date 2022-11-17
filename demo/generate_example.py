@@ -1,3 +1,6 @@
+
+import sys
+sys.path.append('./../c3qts_factor')
 from factor_system import FactorSystem
 from factor_class.cyh.test_factor import test
 
