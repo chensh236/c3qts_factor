@@ -5,6 +5,7 @@ from tqdm import tqdm
 class FactorSystem:
     def __init__(self, factor_class):
         # factor_class: 因子类
+        # 静态？
         self.factor_class = factor_class
     
     def generate(self, product, instrument, begin_date='19000101', end_date='21000101', append=False):
@@ -13,7 +14,17 @@ class FactorSystem:
         begin_date: 生成因子的开始时间
         end_date: 生成因子的结束时间
         append: 生成的因子是覆盖还是追加
+        
+        TODO:
+        Step1: 日期左右空缺(如果为左为空，右为空，分别取值)
+        Step2: 日期合法性
+        Step3: 逐日读取数据
+        Step4: 因子计算
+        
+        Append: 时间序列上的追加？
+        处理某一个合约？
         '''
+        
         data, timestamp, column_dict = read_contract_data(product, instrument, begin_date, end_date)
         self.factor_class.compute(data, timestamp, column_dict, product, instrument, append)
     

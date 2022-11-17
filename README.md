@@ -1,7 +1,11 @@
-# factor_system
+# c3qts量化交易系统因子模块
 
-## 介绍
-因子系统
+<p align="center">
+    <img src ="https://img.shields.io/badge/version-0.0.1-blueviolet.svg"/>
+    <img src ="https://img.shields.io/badge/platform-windows|linux|macos-yellow.svg"/>
+    <img src ="https://img.shields.io/badge/python-3.9-blue.svg" />
+</p>
 
-## 使用样例
-参考文档以及generate_example.py
+## 说明
+因子生成、因子保存
+## 使用
