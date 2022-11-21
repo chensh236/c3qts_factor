@@ -1,13 +1,24 @@
 import sys
-sys.path.append('/home/cyh/mycta/factor_system')
-from utils import save_factor
+sys.path.append('./../c3qts_factor')
 from c3qts.core.constant import Interval
-class test:
-    def __init__(self):
-        # 避免不同用户的因子重名，最好在因子名中加入用户自己的标识
-        self.name = 'test_cyh'
-        self.frequency =['1min', '3min']
+from factor import Factor
+import numpy as np
+import pandas as pd
+
+class TestFactor(Factor):
+    def __init__(self, name, author, freq_list):
+        super().__init__(name, author, freq_list)
     
-    def compute(self, data, timestamp, column_dict, product, instrument, append, save):
-        a1 = data[column_dict['AskPrice1']]
-        save_factor(a1, timestamp, self.name, product, instrument, append)
+    def get_data(self, data, idx):
+        return data[:, idx]
+    
+    def compute(self, data, timestamp, column_dict) -> dict:
+        '''
+        demo
+        '''
+        result_dict = {}
+        result_dict['a1'] = (timestamp, self.get_data(data, column_dict['AskPrice1']) + self.get_data(data, column_dict['BidPrice1']))
+        result_dict['a1'] = (timestamp, self.get_data(data, column_dict['AskPrice1']) - self.get_data(data, column_dict['BidPrice1']))
+        a3 = pd.Series(self.get_data(data, column_dict['AskPrice1']), index=timestamp).rolling(5).mean().dropna()
+        result_dict['a3'] = (a3.index, a3.values)
+        return result_dict
