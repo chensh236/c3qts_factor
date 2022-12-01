@@ -1,4 +1,7 @@
-# c3qts量化交易系统因子模块
+#  C3QTS系统的因子模块
+<p align="center">
+  <img src ="https://gitee.com/ccc-quantitative-team/img/raw/master/C3QTS%20%E4%B8%BBLOGO%20800x600.png"/>
+</p>
 
 <p align="center">
     <img src ="https://img.shields.io/badge/version-0.0.1-blueviolet.svg"/>
