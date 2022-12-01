@@ -5,6 +5,8 @@ from tqdm import tqdm
 from c3qts.core.util import logger
 from c3qts.core.settings import SETTINGS
 from c3qts.core.constant import Exchange, Interval, Product, ContractType
+import sys
+sys.path.append('/home/cyh/mycta/vnpy_localdb')
 from c3qts_localdb.localdb_database import LocaldbDatabase
 
 class FactorSystem:
@@ -13,7 +15,7 @@ class FactorSystem:
         self.db = LocaldbDatabase()
         self.factor_class = factor_class
     
-    def generate(self, product, instrument, begin_date=None, end_date=None, exchange=Exchange.SHFE, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
+    def generate(self, product, instrument, begin_datetime=None, end_datetime=None, exchange=Exchange.SHFE, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
         '''
         instrument: 合约名
         begin_date: 生成因子的开始时间
@@ -31,32 +33,28 @@ class FactorSystem:
         '''
         for frequency in self.factor_class.freq_list:
             if frequency == Interval.TICK:
-                data, timestamp, column_dict = self.db.load_tick_data(symbol=instrument, start=begin_date, end=end_date, symbol_type=symbol_type)
+                data, timestamp, column_dict = self.db.load_tick_data(symbol=instrument, start=begin_datetime, end=end_datetime, symbol_type=symbol_type)
                 # data, timestamp, column_dict = self.db.load_tick_data(symbol=instrument, start=begin_date, end=end_date, symbol_type=symbol_type, factor_name='a1_csh')
                 # print(data, timestamp)
                 # return
                 return_dict = self.factor_class.compute(data, timestamp, column_dict)
                 # TODO(重要): 这里保存的时候需要将timestampe与return结合，才能进行截取
-                return
+                # return
                 if write:
-                    if append:
-                        # TODO:读取文件，追加
-                        pass
-                    else:
-                        # TODO:直接覆盖
-                        for key_ in return_dict.keys():
-                            print(key_)
-                            factor_name = f'{key_}_{self.factor_class.author}'
-                            ticks, timestamp = return_dict[key_]
-                            ticks = np.hstack([timestamp, ticks])
-                            flag = self.db.save_tick_data(ticks=ticks, timestamp=timestamp, exchange=exchange, symbol=instrument, symbol_type=symbol_type, factor_name=factor_name)
-                            print(flag)
+                    for key_ in return_dict.keys():
+                        # print(key_)
+                        factor_name = f'{key_}_{self.factor_class.author}'
+                        timestamp, ticks = return_dict[key_]
+                        flag = self.db.save_tick_data(ticks=ticks, timestamp=timestamp, exchange=exchange, symbol=instrument, symbol_type=symbol_type, factor_name=factor_name, append=append)
+                        # print(flag)
+                else:
+                    return return_dict
             else:
                 pass
         # TODO: 保存的时候在因子的名称后面加上作者名称，避免覆盖
         # 直接写入? 如果是直接写入，
     
-    def parallel_generate(self, products='All', begin_date='19000101', end_date='210000101', write=False, append=False, n_threads=1):
+    def parallel_generate(self, products='All', begin_datetime='19000101', end_datetime='210000101', write=False, append=False, n_threads=1):
         '''
         products:
             All: 全部品种
@@ -73,5 +71,5 @@ class FactorSystem:
             print(f'generating factor: {product}...')
             inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=ContractType.MERGE_ORI, product=product)
             Parallel(n_jobs=n_threads)(delayed(self.generate)
-                                (product, instrument, begin_date, end_date, write, append)
+                                (product, instrument, begin_datetime, end_datetime, write, append)
                                 for instrument in tqdm(inst_list))
