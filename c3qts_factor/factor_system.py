@@ -15,7 +15,7 @@ class FactorSystem:
         self.db = LocaldbDatabase()
         self.factor_class = factor_class
     
-    def generate(self, product, instrument, begin_datetime=None, end_datetime=None, exchange=Exchange.SHFE, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
+    def generate(self, instrument, begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
         '''
         instrument: 合约名
         begin_date: 生成因子的开始时间
@@ -45,7 +45,7 @@ class FactorSystem:
                         # print(key_)
                         factor_name = f'{key_}_{self.factor_class.author}'
                         timestamp, ticks = return_dict[key_]
-                        flag = self.db.save_tick_data(ticks=ticks, timestamp=timestamp, exchange=exchange, symbol=instrument, symbol_type=symbol_type, factor_name=factor_name, append=append)
+                        flag = self.db.save_tick_data(ticks=ticks, timestamp=timestamp, symbol=instrument, symbol_type=symbol_type, factor_name=factor_name, append=append)
                         # print(flag)
                 else:
                     return return_dict
@@ -54,7 +54,7 @@ class FactorSystem:
         # TODO: 保存的时候在因子的名称后面加上作者名称，避免覆盖
         # 直接写入? 如果是直接写入，
     
-    def parallel_generate(self, products='All', begin_datetime='19000101', end_datetime='210000101', write=False, append=False, n_threads=1):
+    def parallel_generate(self, products='All', begin_datetime=None, end_datetime=None, write=False, append=False, n_threads=1):
         '''
         products:
             All: 全部品种
@@ -71,5 +71,5 @@ class FactorSystem:
             print(f'generating factor: {product}...')
             inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=ContractType.MERGE_ORI, product=product)
             Parallel(n_jobs=n_threads)(delayed(self.generate)
-                                (product, instrument, begin_datetime, end_datetime, write, append)
+                                (instrument, begin_datetime, end_datetime, ContractType.MERGE_ORI, write, append)
                                 for instrument in tqdm(inst_list))
