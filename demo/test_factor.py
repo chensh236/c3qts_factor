@@ -20,5 +20,5 @@ class TestFactor(Factor):
         result_dict['a1'] = (timestamp, self.get_data(data, column_dict['AskPrice1']) + self.get_data(data, column_dict['BidPrice1']))
         result_dict['a1'] = (timestamp, self.get_data(data, column_dict['AskPrice1']) - self.get_data(data, column_dict['BidPrice1']))
         a3 = pd.Series(self.get_data(data, column_dict['AskPrice1']), index=timestamp).rolling(5).mean().dropna()
-        result_dict['a3'] = (a3.index, a3.values)
+        result_dict['a3'] = (a3.index.values, a3.values)
         return result_dict
