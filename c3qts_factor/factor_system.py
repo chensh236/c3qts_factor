@@ -54,7 +54,7 @@ class FactorSystem:
         # TODO: 保存的时候在因子的名称后面加上作者名称，避免覆盖
         # 直接写入? 如果是直接写入，
     
-    def parallel_generate(self, products='All', begin_datetime=None, end_datetime=None, write=False, append=False, n_threads=1):
+    def parallel_generate(self, products='All', begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False, n_threads=1):
         '''
         products:
             All: 全部品种
@@ -65,11 +65,11 @@ class FactorSystem:
         n_threads: 并行核数
         '''
         if products == 'All':
-            products = self.db.get_all_products(interval=Interval.TICK, symbol_type=ContractType.MERGE_ORI)
+            products = self.db.get_all_products(interval=Interval.TICK, symbol_type=symbol_type)
 
         for product in products:
             print(f'generating factor: {product}...')
-            inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=ContractType.MERGE_ORI, product=product)
+            inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=symbol_type, product=product)
             Parallel(n_jobs=n_threads)(delayed(self.generate)
-                                (instrument, begin_datetime, end_datetime, ContractType.MERGE_ORI, write, append)
+                                (instrument, begin_datetime, end_datetime, symbol_type, write, append)
                                 for instrument in tqdm(inst_list))
