@@ -46,6 +46,7 @@ class FactorSystem:
                         # print(key_)
                         factor_name = f'{key_}_{self.factor_class.author}'
                         timestamp, ticks = return_dict[key_]
+                        ticks = ticks.reshape(-1, 1)
                         flag = self.db.save_tick_data(ticks=ticks, timestamp=timestamp, symbol=instrument, symbol_type=symbol_type, factor_name=factor_name, append=append)
                         # print(flag)
                 else:
