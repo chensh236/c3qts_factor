@@ -5,8 +5,6 @@ from tqdm import tqdm
 from c3qts.core.util import logger
 from c3qts.core.settings import SETTINGS
 from c3qts.core.constant import Exchange, Interval, Product, ContractType
-import sys
-sys.path.append('/home/cyh/mycta/vnpy_localdb')
 from c3qts_localdb.localdb_database import LocaldbDatabase
 
 class FactorSystem:
@@ -20,16 +18,7 @@ class FactorSystem:
         instrument: 合约名
         begin_date: 生成因子的开始时间
         end_date: 生成因子的结束时间
-        append: 生成的因子是覆盖还是追加
-        
-        TODO:
-        Step1: 日期左右空缺(如果为左为空，右为空，分别取值)
-        Step2: 日期合法性
-        Step3: 逐日读取数据
-        Step4: 因子计算
-        
-        Append: 时间序列上的追加？
-        处理某一个合约？
+        append: 因子追加
         '''
         logger.info(f'合约{instrument}生成因子开始\t开始日期:{begin_datetime}\t结束日期:{end_datetime}')
         for frequency in self.factor_class.freq_list:
@@ -38,7 +27,14 @@ class FactorSystem:
                 # data, timestamp, column_dict = self.db.load_tick_data(symbol=instrument, start=begin_date, end=end_date, symbol_type=symbol_type, factor_name='a1_csh')
                 # print(data, timestamp)
                 # return
-                return_dict = self.factor_class.compute(data, timestamp, column_dict)
+                try:
+                    return_dict = self.factor_class.compute(data, timestamp, column_dict)
+                except Exception as e:
+                    logger.error(f'''
+                                 因子{self.factoor_class}在合约{instrument}上生成产生错误：
+                                 {e}
+                                 ''')
+                    return None
                 # TODO(重要): 这里保存的时候需要将timestampe与return结合，才能进行截取
                 # return
                 if write:
