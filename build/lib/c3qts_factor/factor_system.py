@@ -31,7 +31,6 @@ class FactorSystem:
         Append: 时间序列上的追加？
         处理某一个合约？
         '''
-        logger.info(f'开始生成合约{instrument}的因子\t开始时间:{begin_datetime}\t结束时间:{end_datetime}')
         for frequency in self.factor_class.freq_list:
             if frequency == Interval.TICK:
                 data, timestamp, column_dict = self.db.load_tick_data(symbol=instrument, start=begin_datetime, end=end_datetime, symbol_type=symbol_type)
@@ -73,4 +72,4 @@ class FactorSystem:
             inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=ContractType.MERGE_ORI, product=product)
             Parallel(n_jobs=n_threads)(delayed(self.generate)
                                 (instrument, begin_datetime, end_datetime, ContractType.MERGE_ORI, write, append)
-                                for instrument in inst_list)
+                                for instrument in tqdm(inst_list))

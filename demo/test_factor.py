@@ -1,7 +1,8 @@
 import sys
 sys.path.append('./../c3qts_factor')
 from c3qts.core.constant import Interval
-from factor import Factor
+#from factor import Factor 这里需要指定路径，要不然找不到
+from factor_system.c3qts_factor.factor import Factor
 import numpy as np
 import pandas as pd
 
