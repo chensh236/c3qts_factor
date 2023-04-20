@@ -8,6 +8,11 @@ from c3qts.core.constant import Interval, Exchange, ContractType
 from c3qts.core.settings import SETTINGS
 from c3qts_localdb.localdb_database import LocaldbDatabase
 
+'''
+1. 在读取的时候，需要以'{factor_name}_{author}'的形式来读取；
+2. 日期统一以str类型的变量，如:20220101或者20220101000000000（如果只有日期自动填充，日期范围为左闭，右闭）
+3. data与index的类型均为np.ndarray
+'''
 SETTINGS["database.basedir"] = '/dev_data/database'
 
 test_factor_class = TestFactor(name='momentum', author='cyh', freq_list=[Interval.TICK])
