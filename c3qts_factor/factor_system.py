@@ -31,7 +31,7 @@ class FactorSystem:
                     return_dict = self.factor_class.compute(data, timestamp, column_dict)
                 except Exception as e:
                     logger.error(f'''
-                                 因子{self.factoor_class}在合约{instrument}上生成产生错误：
+                                 因子{self.factor_class}在合约{instrument}上生成产生错误：
                                  {e}
                                  ''')
                     return None
