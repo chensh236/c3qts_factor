@@ -1,9 +1,8 @@
 import sys
-sys.path.append('./../c3qts_factor')
 #from factor_system import FactorSystem
 #from test_factor import TestFactor
-from factor_system.c3qts_factor.factor_system import FactorSystem
-from factor_system.demo.test_factor import TestFactor
+from c3qts_factor.factor_system import FactorSystem
+from .test_factor import TestFactor
 from c3qts.core.constant import Interval, Exchange, ContractType
 from c3qts.core.settings import SETTINGS
 from c3qts_localdb.localdb_database import LocaldbDatabase
