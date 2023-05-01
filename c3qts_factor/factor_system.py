@@ -1,17 +1,34 @@
 import numpy as np
 from joblib import Parallel, delayed
 from tqdm import tqdm
-
+from pathlib import Path
+import os
 from c3qts.core.util import logger
 from c3qts.core.settings import SETTINGS
 from c3qts.core.constant import Exchange, Interval, Product, ContractType
 from c3qts_localdb.localdb_database import LocaldbDatabase
+
 
 class FactorSystem:
     def __init__(self, factor_class):
         # factor_class: 因子类
         self.db = LocaldbDatabase()
         self.factor_class = factor_class
+    
+    '''
+    根据因子名称以及作者名称获得不同周期的因子列表
+    '''
+    @staticmethod
+    def get_factor_list(database_dir: str, factor_name:str ='', author:str =''):
+        if len(factor_name) == 0 and len(author) == 0:
+            logger.error(f'因子{factor_name}, 作者{author}至少需要一个必要元素')
+            return None
+        database_dir = Path(database_dir)
+        input_fp = database_dir / '期货' / '因子'
+        file_list = os.listdir(input_fp)
+        file_list.sort()
+        file_list = [factor for factor in file_list if factor_name in factor and author in factor]
+        return file_list
     
     def generate(self, instrument, begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
         '''

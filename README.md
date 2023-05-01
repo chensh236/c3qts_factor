@@ -41,6 +41,29 @@ generate(self, instrument, begin_datetime=None, end_datetime=None, symbol_type=C
 - write: 是否将计算结果写入数据库，默认为False。
 - append: 是否在已有因子基础上追加计算结果，默认为False。
 
+
+#### get_factor_list
+为方便合并因子数据，`FactorSystem`类也包括因子的搜索功能。
+```python
+@staticmethod
+def get_factor_list(database_dir: str, factor_name: str = '', author: str = '')
+```
+功能：根据因子名称和作者名称，从数据库中获得不同周期的因子列表。
+
+参数：
+- database_dir (str)：数据库目录。
+- factor_name (str)：因子名称，默认为空。当因子名称和作者名称都为空时，将报错并返回None。
+- author (str)：作者名，默认为空。当因子名称和作者名称都为空时，将报错并返回None。
+
+返回值：
+- file_list：符合筛选条件的因子列表。
+
+使用方法：
+```python
+factor_list = FactorSystem.get_factor_list(database_dir, factor_name='Factor1', author='Author1')
+```
+示例代码调用了 get_factor_list 函数，传入数据库目录、品种、因子名称和作者名称，函数将返回一个包含符合筛选条件的因子列表。如果因子名称和作者名称都为空，将会报错并返回None。
+
 #### parallel_generate
 ```python
 parallel_generate(self, products='All', begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False, n_threads=1): 
