@@ -35,8 +35,9 @@ class FactorSystem:
                                  {e}
                                  ''')
                     return None
-                # TODO(重要): 这里保存的时候需要将timestampe与return结合，才能进行截取
-                # return
+                # 删除很大的变量
+                del data
+                del timestamp
                 if write:
                     for key_ in return_dict.keys():
                         # print(key_)
@@ -67,7 +68,7 @@ class FactorSystem:
             products = self.db.get_all_products(interval=Interval.TICK, symbol_type=symbol_type)
 
         for product in products:
-            print(f'generating factor: {product}...')
+            logger.info(f'generating factor: {product}...')
             inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=symbol_type, product=product)
             Parallel(n_jobs=n_threads)(delayed(self.generate)
                                 (instrument, begin_datetime, end_datetime, symbol_type, write, append)

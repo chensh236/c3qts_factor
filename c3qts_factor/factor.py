@@ -21,4 +21,4 @@ class Factor:
         return result_dict
     
     def get_data(self, data, col):
-        return data[col]
+        return data[:, col]
