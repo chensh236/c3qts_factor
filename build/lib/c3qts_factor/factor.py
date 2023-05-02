@@ -19,3 +19,6 @@ class Factor:
         a3 = pd.Series(index= data[column_dict['AskPrice1']]).rolling(5).mean()
         result_dict['a3'] = (a3.index, a3.values)
         return result_dict
+    
+    def get_data(self, data, col):
+        return data[:, col]

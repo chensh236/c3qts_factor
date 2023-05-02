@@ -7,7 +7,7 @@ from c3qts.core.util import logger
 from c3qts.core.settings import SETTINGS
 from c3qts.core.constant import Exchange, Interval, Product, ContractType
 from c3qts_localdb.localdb_database import LocaldbDatabase
-
+import shutil
 
 class FactorSystem:
     def __init__(self, factor_class):
@@ -16,20 +16,94 @@ class FactorSystem:
         self.factor_class = factor_class
     
     '''
-    根据因子名称以及作者名称获得不同周期的因子列表
+    根据因子名称以及作者名称获得不同周期的因子列表。如若full为True则只返回存在主力合约的因子，否则返回所有因子
     '''
     @staticmethod
-    def get_factor_list(database_dir: str, factor_name:str ='', author:str =''):
+    def get_factor_list(database_dir: str, factor_name:str ='', author:str ='', product_name=Product.FUTURES, full: bool=False, interval: Interval=Interval.TICK):
         if len(factor_name) == 0 and len(author) == 0:
             logger.error(f'因子{factor_name}, 作者{author}至少需要一个必要元素')
             return None
         database_dir = Path(database_dir)
-        input_fp = database_dir / '期货' / '因子'
-        file_list = os.listdir(input_fp)
-        file_list.sort()
-        file_list = [factor for factor in file_list if factor_name in factor and author in factor]
-        return file_list
+        input_fp = database_dir / product_name.value / '因子'
+        factor_list = os.listdir(input_fp)
+        factor_list.sort()
+        if full:
+            factor_list = [factor for factor in factor_list if factor_name in factor and author in factor and any((database_dir / product_name.value / '因子' / factor / interval.value / ContractType.ZL.value).iterdir())]
+        else:
+            factor_list = [factor for factor in factor_list if factor_name in factor and author in factor]
+        return factor_list
     
+    @staticmethod
+    def _confirm_delete(factor_name=None, factor_list=None):
+        if factor_name is None and factor_list is None:
+            logger.warning('删除的因子名称以及列表为空')
+            return False
+        # 在删除前获取用户确认
+        msg = ''
+        if factor_name is not None:
+            msg = f'确认删除因子 {factor_name} 及其相关数据? (y/n):\nUser: '
+        else:
+            msg = f'确认删除因子列表中的因子及其相关数据? (y/n): \n{factor_list}\nUser:'
+        confirm = input(msg)
+        if confirm.lower() != 'y':
+            print('操作已取消。')
+            return False
+        else:
+            return True
+
+    '''
+    批量删除因子
+    '''
+    @staticmethod
+    def remove_factor_list(database_dir, factor_list, author: str='', product_name=Product.FUTURES, interval: Interval=None, contract_type: ContractType=None, variety_list=[]):
+        if FactorSystem._confirm_delete(factor_list=factor_list):
+            for factor_name in factor_list:
+                FactorSystem.remove_factor(database_dir, factor_name, author, product_name, interval, contract_type, variety_list, confirm=True)
+
+    
+    '''
+    根据因子名称以及作者删除因子
+    '''
+    @staticmethod
+    def remove_factor(database_dir, factor_name, author: str='', product_name=Product.FUTURES, interval: Interval=None, contract_type: ContractType=None, variety_list=[], confirm=False):
+        if len(factor_name) == 0:
+            logger.error(f'因子{factor_name}名称必须存在，作者可以不存在')
+            return False
+        # 删除前确认
+        if confirm or FactorSystem._confirm_delete(factor_name=factor_name):        
+            base_path = Path(database_dir)
+            base_path = base_path / product_name.value / '因子'
+            if len(author) > 0:
+                factor_name = f'{factor_name}_{author}'
+            factor_path = Path(database_dir) / '期货' / '因子' / factor_name
+            
+            if interval is None:
+                # 删除指定因子下的所有内容
+                logger.info(f'删除路径:{factor_path}')
+                shutil.rmtree(factor_path, ignore_errors=True)
+                return
+
+            interval_path = factor_path / interval.value
+            
+            if contract_type is None:
+                # 删除指定因子和时间间隔下的所有内容
+                logger.info(f'删除路径:{interval_path}')
+                shutil.rmtree(interval_path, ignore_errors=True)
+                return
+
+            contract_type_path = interval_path / contract_type.value
+            
+            if len(variety_list) == 0:
+                # 删除指定因子、时间间隔和合约类型下的所有内容
+                logger.info(f'删除路径:{contract_type_path}')
+                shutil.rmtree(contract_type_path, ignore_errors=True)
+            
+            for variety in variety_list:
+                # 删除特定品种的数据
+                variety_path = contract_type_path / variety
+                logger.info(f'删除路径:{variety_path}')
+                shutil.rmtree(variety_path, ignore_errors=True)
+
     def generate(self, instrument, begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
         '''
         instrument: 合约名
