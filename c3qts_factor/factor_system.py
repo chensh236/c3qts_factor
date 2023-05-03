@@ -111,7 +111,7 @@ class FactorSystem:
         end_date: 生成因子的结束时间
         append: 因子追加
         '''
-        logger.info(f'合约{instrument}生成因子开始\t开始日期:{begin_datetime}\t结束日期:{end_datetime}')
+        logger.info(f'合约{instrument}生成因子{self.factor_class.name}_{self.factor_class.author}开始\t开始日期:{begin_datetime}\t结束日期:{end_datetime}')
         for frequency in self.factor_class.freq_list:
             if frequency == Interval.TICK:
                 data, timestamp, column_dict = self.db.load_tick_data(symbol=instrument, start=begin_datetime, end=end_datetime, symbol_type=symbol_type)
@@ -141,7 +141,7 @@ class FactorSystem:
                     return return_dict
             else:
                 pass
-        logger.info(f'合约{instrument}生成因子结束\t开始日期:{begin_datetime}\t结束日期:{end_datetime}')
+        logger.info(f'合约{instrument}生成因子{self.factor_class.name}_{self.factor_class.author}结束\t开始日期:{begin_datetime}\t结束日期:{end_datetime}')
         # TODO: 保存的时候在因子的名称后面加上作者名称，避免覆盖
         # 直接写入? 如果是直接写入，
     
