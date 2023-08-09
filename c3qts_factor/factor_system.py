@@ -19,19 +19,61 @@ class FactorSystem:
     根据因子名称以及作者名称获得不同周期的因子列表。如若full为True则只返回存在主力合约的因子，否则返回所有因子
     '''
     @staticmethod
-    def get_factor_list(database_dir: str, factor_name:str ='', author:str ='', product_name=Product.FUTURES, full: bool=False, interval: Interval=Interval.TICK):
+    def get_factor_list(database_dir: str, factor_name: str = '', author: str = '', symbol: str = '', variety: str = '', product_name=Product.FUTURES, contract_type=ContractType.ZL, interval: Interval=Interval.TICK):
         if len(factor_name) == 0 and len(author) == 0:
             logger.error(f'因子{factor_name}, 作者{author}至少需要一个必要元素')
             return None
+
         database_dir = Path(database_dir)
         input_fp = database_dir / product_name.value / '因子'
         factor_list = os.listdir(input_fp)
         factor_list.sort()
-        if full:
-            factor_list = [factor for factor in factor_list if factor_name in factor and author in factor and any((database_dir / product_name.value / '因子' / factor / interval.value / ContractType.ZL.value).iterdir())]
-        else:
-            factor_list = [factor for factor in factor_list if factor_name in factor and author in factor]
+
+        if not symbol and not variety:
+            logger.warning('Symbol和Variety不能同时为空')
+            return []
+        elif symbol and not variety:
+            contract_type = ContractType.MERGE_ORI
+            variety = ''.join([i for i in symbol if not i.isdigit()])
+        elif variety and not symbol:
+            contract_type = ContractType.ZL
+        elif variety and symbol:
+            if symbol.startswith(variety):
+                contract_type = ContractType.MERGE_ORI
+            else:
+                logger.error('Variety应该是Symbol的前几个字母')
+                return []
+
+        if contract_type == ContractType.ZL:
+            factor_list = [factor for factor in factor_list if factor_name in factor and author in factor and (database_dir / product_name.value / '因子' / factor / interval.value / ContractType.ZL.value / variety / f'{variety}.h5').is_file()]
+        elif contract_type == ContractType.MERGE_ORI:
+            factor_list = [factor for factor in factor_list if factor_name in factor and author in factor and (database_dir / product_name.value / '因子' / factor / interval.value / ContractType.MERGE_ORI.value / variety / f'{symbol}.h5').is_file()]
+
         return factor_list
+
+
+    @staticmethod
+    def get_factor_list_through_different_product(database_dir: str, factor_name: str = '', author: str = '', symbol_list: list = [], variety_list: list = [], product_name=Product.FUTURES, contract_type=ContractType.ZL, interval: Interval=Interval.TICK):
+        if len(factor_name) == 0 and len(author) == 0:
+            logger.error(f'因子{factor_name}, 作者{author}至少需要一个必要元素')
+            return None
+
+        factor_dict = {}
+        if contract_type == ContractType.ZL:
+            if len(symbol_list) != 0:
+                logger.warning(f'对于主力合约类型，symbol_list应保持为空')
+            for variety in variety_list:
+                factor_list = FactorSystem.get_factor_list(database_dir, factor_name, author, '', variety, product_name, contract_type, interval)
+                factor_dict[variety] = factor_list
+
+        elif contract_type == ContractType.MERGE_ORI:
+            if len(variety_list) != 0:
+                logger.warning(f'对于原始合约类型，variety_list应保持为空')
+            for symbol in symbol_list:
+                factor_list = FactorSystem.get_factor_list(database_dir, factor_name, author, symbol, '', product_name, contract_type, interval)
+                factor_dict[symbol] = factor_list
+
+        return factor_dict
     
     @staticmethod
     def _confirm_delete(factor_name=None, factor_list=None):
