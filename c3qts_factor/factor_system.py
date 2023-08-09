@@ -104,7 +104,7 @@ class FactorSystem:
                 logger.info(f'删除路径:{variety_path}')
                 shutil.rmtree(variety_path, ignore_errors=True)
 
-    def generate(self, instrument, begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False):
+    def generate(self, instrument, begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=None, append=False):
         '''
         instrument: 合约名
         begin_date: 生成因子的开始时间
@@ -129,6 +129,8 @@ class FactorSystem:
                 # 删除很大的变量
                 del data
                 del timestamp
+                if write is None:
+                    raise ValueError('write参数必须指定True或者False')
                 if write:
                     for key_ in return_dict.keys():
                         # print(key_)
@@ -145,7 +147,7 @@ class FactorSystem:
         # TODO: 保存的时候在因子的名称后面加上作者名称，避免覆盖
         # 直接写入? 如果是直接写入，
     
-    def parallel_generate(self, products='All', begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=False, append=False, n_threads=1):
+    def parallel_generate(self, products='All', begin_datetime=None, end_datetime=None, symbol_type=ContractType.MERGE_ORI, write=None, append=False, n_threads=1):
         '''
         products:
             All: 全部品种
@@ -157,7 +159,8 @@ class FactorSystem:
         '''
         if products == 'All':
             products = self.db.get_all_products(interval=Interval.TICK, symbol_type=symbol_type)
-
+        if write is None:
+            raise ValueError('write参数必须指定True或者False')
         for product in products:
             logger.info(f'generating factor: {product}...')
             inst_list = self.db.get_all_instruments(interval=Interval.TICK, symbol_type=symbol_type, product=product)
